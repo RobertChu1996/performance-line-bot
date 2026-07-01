@@ -10,9 +10,9 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "static", "posters")
 # Pixel positions for 706x1000 template — adjust if layout shifts
 DATE_POS        = (353, 95)    # date text center
 TITLE_HEAD_POS  = (353, 160)   # "本日業績王" center
-CIRCLE_CENTER   = (353, 504)   # headshot circle center (measured from template)
-CIRCLE_RADIUS   = 170          # slightly smaller than 184 to show circle border
-NAME_POS        = (353, 721)   # ribbon center (measured from template)
+CIRCLE_CENTER   = (353, 490)   # headshot circle center
+CIRCLE_RADIUS   = 172          # slightly inside circle border
+NAME_POS        = (353, 721)   # ribbon center
 TITLE_POS       = (353, 800)   # job title center
 
 DATE_COLOR  = "#FFD700"
@@ -51,7 +51,19 @@ def draw_centered(draw, text, center, font, color, stroke=2):
     )
 
 
-def generate_poster(name: str, title: str, date_str: str = None):
+def find_photo_and_title(name: str):
+    """Find photo file starting with name, extract title from filename."""
+    for fname in os.listdir(PHOTOS_DIR):
+        stem, ext = os.path.splitext(fname)
+        if ext.lower() not in (".jpg", ".jpeg", ".png"):
+            continue
+        if stem.startswith(name):
+            title = stem[len(name):]  # everything after the name = title
+            return os.path.join(PHOTOS_DIR, fname), title or ""
+    return None, None
+
+
+def generate_poster(name: str, title: str = "", date_str: str = None):
     if date_str is None:
         date_str = datetime.now().strftime("%Y.%m.%d")
 
@@ -59,16 +71,14 @@ def generate_poster(name: str, title: str, date_str: str = None):
 
     template = Image.open(TEMPLATE_PATH).convert("RGBA")
 
-    # Paste circular headshot
-    photo_path = None
-    for ext in ("jpg", "jpeg", "png"):
-        p = os.path.join(PHOTOS_DIR, f"{name}.{ext}")
-        if os.path.exists(p):
-            photo_path = p
-            break
-
+    # Find photo; title from filename overrides if not manually specified
+    photo_path, file_title = find_photo_and_title(name)
     if photo_path is None:
-        return None
+        return None, None
+    if not title:
+        title = file_title
+
+    return_title = title  # for app.py to use in announcement text
 
     raw = Image.open(photo_path).convert("RGBA")
     # Crop to top 65% to focus on face/upper body
@@ -96,4 +106,4 @@ def generate_poster(name: str, title: str, date_str: str = None):
 
     out = os.path.join(OUTPUT_DIR, f"winner_{date_str.replace('.', '')}.png")
     template.convert("RGB").save(out)
-    return out
+    return out, return_title

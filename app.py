@@ -47,14 +47,13 @@ def handle_text(event):
     if hasattr(event.source, "group_id"):
         print(f"[GROUP ID] {event.source.group_id}", flush=True)
 
-    # Command: 業績王 姓名 職位 [YYYY.MM.DD]
-    match = re.match(r"業績王\s+(\S+)\s+(\S+)(?:\s+(\d{4}\.\d{2}\.\d{2}))?", text)
+    # Command: 業績王 姓名 [YYYY.MM.DD]  (職位從檔名自動讀取)
+    match = re.match(r"業績王\s+(\S+)(?:\s+(\d{4}\.\d{2}\.\d{2}))?", text)
     if not match:
         return
 
-    name      = match.group(1)
-    title     = match.group(2)
-    date_str  = match.group(3) or datetime.now().strftime("%Y.%m.%d")
+    name     = match.group(1)
+    date_str = match.group(2) or datetime.now().strftime("%Y.%m.%d")
 
     try:
         d            = datetime.strptime(date_str, "%Y.%m.%d")
@@ -64,12 +63,12 @@ def handle_text(event):
         date_display = date_str
         next_day     = "明天"
 
-    poster_path = generate_poster(name, title, date_str)
+    poster_path, title = generate_poster(name, date_str=date_str)
 
     if poster_path is None:
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=f"❌ 找不到 {name} 的照片\n請將照片放在 photos/{name}.jpg"),
+            TextSendMessage(text=f"❌ 找不到 {name} 的照片\n請將照片命名為「{name}職位.jpg」\n例：{name}業務主任.jpg"),
         )
         return
 
