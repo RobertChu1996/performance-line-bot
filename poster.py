@@ -11,7 +11,7 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "static", "posters")
 DATE_POS        = (353, 95)    # date text center
 TITLE_HEAD_POS  = (353, 160)   # "本日業績王" center
 CIRCLE_CENTER   = (353, 490)   # headshot circle center
-CIRCLE_RADIUS   = 172          # slightly inside circle border
+CIRCLE_RADIUS   = 180          # covers full template circle
 NAME_POS        = (353, 721)   # ribbon center
 TITLE_POS       = (353, 800)   # job title center
 
@@ -81,13 +81,7 @@ def generate_poster(name: str, title: str = "", date_str: str = None):
     return_title = title  # for app.py to use in announcement text
 
     raw = Image.open(photo_path).convert("RGBA")
-    # Crop to top 65% to focus on face/upper body
-    pw, ph = raw.size
-    crop_h = int(ph * 0.65)
-    crop_size = min(pw, crop_h)
-    left = (pw - crop_size) // 2
-    raw = raw.crop((left, 0, left + crop_size, crop_size))
-
+    # Photos are square — resize directly to fill circle
     r = CIRCLE_RADIUS
     photo = raw.resize((r * 2, r * 2), Image.LANCZOS)
     mask = Image.new("L", (r * 2, r * 2), 0)
