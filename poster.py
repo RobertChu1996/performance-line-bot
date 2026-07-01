@@ -10,9 +10,9 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "static", "posters")
 # Pixel positions for 706x1000 template — adjust if layout shifts
 DATE_POS        = (353, 95)    # date text center
 TITLE_HEAD_POS  = (353, 160)   # "本日業績王" center
-CIRCLE_CENTER   = (353, 415)   # headshot circle center
-CIRCLE_RADIUS   = 190          # headshot circle radius (px)
-NAME_POS        = (353, 725)   # winner name center
+CIRCLE_CENTER   = (353, 504)   # headshot circle center (measured from template)
+CIRCLE_RADIUS   = 170          # slightly smaller than 184 to show circle border
+NAME_POS        = (353, 721)   # ribbon center (measured from template)
 TITLE_POS       = (353, 800)   # job title center
 
 DATE_COLOR  = "#FFD700"
