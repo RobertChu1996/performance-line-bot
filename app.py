@@ -1,11 +1,13 @@
 import os
 import re
+import base64
+import anthropic
 from datetime import datetime, timedelta
 from flask import Flask, request, abort, send_from_directory
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import (
-    MessageEvent, TextMessage,
+    MessageEvent, TextMessage, ImageMessage,
     TextSendMessage, ImageSendMessage,
 )
 from poster import generate_poster
@@ -16,6 +18,9 @@ line_bot_api = LineBotApi(os.environ["LINE_CHANNEL_ACCESS_TOKEN"])
 handler      = WebhookHandler(os.environ["LINE_CHANNEL_SECRET"])
 GROUP_ID     = os.environ.get("LINE_GROUP_ID", "")
 BASE_URL     = os.environ.get("BASE_URL", "").rstrip("/")
+
+# In-memory buffer for report images (cleared after 結算)
+pending_reports: list[str] = []  # base64-encoded images
 
 
 @app.route("/health")
@@ -39,27 +44,87 @@ def callback():
     return "OK"
 
 
+@handler.add(MessageEvent, message=ImageMessage)
+def handle_image(event):
+    content = line_bot_api.get_message_content(event.message.id)
+    image_data = b"".join(chunk for chunk in content.iter_content())
+    pending_reports.append(base64.b64encode(image_data).decode())
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=f"✅ 已收到第 {len(pending_reports)} 張報表，傳完後請發「結算」"),
+    )
+
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_text(event):
     text = event.message.text.strip()
 
-    # Print group ID for initial setup
     if hasattr(event.source, "group_id"):
         print(f"[GROUP ID] {event.source.group_id}", flush=True)
 
-    # Command: 業績王 姓名 [YYYY.MM.DD]  (職位從檔名自動讀取)
+    # 結算：用 Claude 讀所有報表，找最高 FYC 者
+    if text == "結算":
+        if not pending_reports:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text="❌ 尚未收到任何報表，請先傳報表照片"),
+            )
+            return
+
+        client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        content = []
+        for img_b64 in pending_reports:
+            content.append({
+                "type": "image",
+                "source": {"type": "base64", "media_type": "image/jpeg", "data": img_b64},
+            })
+        content.append({
+            "type": "text",
+            "text": (
+                "這些是業績日報表，請找出所有業務員的姓名與台幣FYC金額，"
+                "回傳台幣FYC最高的業務員姓名（只回傳中文姓名，不要其他文字）。"
+                "如果有並列最高，只回傳其中一位即可。"
+            ),
+        })
+
+        try:
+            response = client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=50,
+                messages=[{"role": "user", "content": content}],
+            )
+            winner_name = response.content[0].text.strip()
+        except Exception as e:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text=f"❌ 讀取報表失敗：{e}"),
+            )
+            return
+        finally:
+            pending_reports.clear()
+
+        _announce(event, winner_name)
+        return
+
+    # 手動指令：業績王 姓名 [YYYY.MM.DD]
     match = re.match(r"業績王\s+(\S+)(?:\s+(\d{4}\.\d{2}\.\d{2}))?", text)
     if not match:
         return
 
     name     = match.group(1)
     date_str = match.group(2) or datetime.now().strftime("%Y.%m.%d")
+    _announce(event, name, date_str)
+
+
+def _announce(event, name: str, date_str: str = None):
+    if date_str is None:
+        date_str = datetime.now().strftime("%Y.%m.%d")
 
     try:
         d            = datetime.strptime(date_str, "%Y.%m.%d")
         date_display = f"{d.month}/{d.day}"
         next_workday = d + timedelta(days=1)
-        while next_workday.weekday() >= 5:  # 5=Sat, 6=Sun
+        while next_workday.weekday() >= 5:
             next_workday += timedelta(days=1)
         next_day = f"{next_workday.month}/{next_workday.day}"
     except Exception:
@@ -98,7 +163,6 @@ def handle_text(event):
             ),
         ],
     )
-
 
 
 if __name__ == "__main__":
