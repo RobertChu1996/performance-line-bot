@@ -74,11 +74,22 @@ def handle_text(event):
                 "type": "image",
                 "source": {"type": "base64", "media_type": "image/jpeg", "data": img_b64},
             })
+        # Build member list from photos/ filenames
+        members = []
+        for fname in os.listdir("photos"):
+            stem, ext = os.path.splitext(fname)
+            if ext.lower() in (".jpg", ".jpeg", ".png") and stem:
+                name_only = re.match(r'[\u4e00-\u9fff]+', stem)
+                if name_only:
+                    members.append(name_only.group(0))
+
+        member_list = "、".join(members)
         content.append({
             "type": "text",
             "text": (
-                "這些是業績日報表。找出台幣FYC數字最高的業務員。"
-                "只輸出那個人的中文姓名，2到4個中文字，不要任何其他文字、標點、說明。"
+                f"這些是業績日報表。找出台幣FYC數字最高的業務員。"
+                f"團隊成員名單：{member_list}。"
+                f"回傳名單中最符合的那個人的中文姓名，只輸出姓名本身，不要任何其他文字。"
             ),
         })
 
