@@ -10,9 +10,9 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "static", "posters")
 # Pixel positions for 706x1000 template — adjust if layout shifts
 DATE_POS        = (353, 95)    # date text center
 TITLE_HEAD_POS  = (353, 160)   # "本日業績王" center
-CIRCLE_CENTER   = (353, 490)   # headshot circle center
-CIRCLE_RADIUS   = 180          # covers full template circle
-NAME_POS        = (353, 721)   # ribbon center
+CIRCLE_CENTER   = (344, 477)   # headshot circle center (measured)
+CIRCLE_RADIUS   = 188          # slightly larger than template radius 185
+NAME_POS        = (353, 718)   # ribbon center
 TITLE_POS       = (353, 800)   # job title center
 
 DATE_COLOR  = "#FFD700"
@@ -80,10 +80,11 @@ def generate_poster(name: str, title: str = "", date_str: str = None):
 
     return_title = title  # for app.py to use in announcement text
 
-    raw = Image.open(photo_path).convert("RGBA")
-    # Photos are square — resize directly to fill circle
+    from PIL import ImageOps
+    # Center-crop to square, resize to fill circle
     r = CIRCLE_RADIUS
-    photo = raw.resize((r * 2, r * 2), Image.LANCZOS)
+    raw = Image.open(photo_path).convert("RGB")
+    photo = ImageOps.fit(raw, (r * 2, r * 2), Image.LANCZOS).convert("RGBA")
     mask = Image.new("L", (r * 2, r * 2), 0)
     ImageDraw.Draw(mask).ellipse((0, 0, r * 2, r * 2), fill=255)
     photo.putalpha(mask)

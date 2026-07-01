@@ -58,10 +58,13 @@ def handle_text(event):
     try:
         d            = datetime.strptime(date_str, "%Y.%m.%d")
         date_display = f"{d.month}/{d.day}"
-        next_day     = f"{(d + timedelta(days=1)).month}/{(d + timedelta(days=1)).day}"
+        next_workday = d + timedelta(days=1)
+        while next_workday.weekday() >= 5:  # 5=Sat, 6=Sun
+            next_workday += timedelta(days=1)
+        next_day = f"{next_workday.month}/{next_workday.day}"
     except Exception:
         date_display = date_str
-        next_day     = "明天"
+        next_day     = "下一個工作日"
 
     poster_path, title = generate_poster(name, date_str=date_str)
 
