@@ -12,7 +12,7 @@ DATE_POS        = (353, 95)    # date text center
 TITLE_HEAD_POS  = (353, 160)   # "本日業績王" center
 CIRCLE_CENTER   = (344, 477)   # headshot circle center (measured)
 CIRCLE_RADIUS   = 188          # slightly larger than template radius 185
-NAME_POS        = (353, 718)   # ribbon center
+NAME_POS        = (353, 715)   # ribbon center
 TITLE_POS       = (353, 800)   # job title center
 
 DATE_COLOR  = "#FFD700"
