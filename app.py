@@ -88,24 +88,29 @@ def handle_text(event):
             "type": "text",
             "text": (
                 f"這些是三商美邦業績受理日報表。"
-                f"每位業務員底下有「業務員小計」區塊，該區塊可能有多行（TWD、USD 等幣別分開列），"
-                f"最後一行（無幣別標示）是所有幣別換算台幣後的總FYC合計，就是最右欄的那個數字。"
-                f"請找出每位業務員「業務員小計」最後一行的台幣FYC合計，比較所有人後回傳最高的那位姓名。"
-                f"注意最右欄才是台幣FYC，不要看成台幣FYP。"
-                f"團隊成員名單（從中選出最符合的名字）：{member_list}。"
-                f"只輸出中文姓名，不要任何其他文字。"
+                f"每位業務員底下有「業務員小計」區塊，可能有多行（TWD、USD 等幣別分開列），"
+                f"最後一行（無幣別標示）是該業務員所有幣別換算台幣後的台幣FYC總計（最右欄數字）。"
+                f"注意：「通訊處合計」是整個部門的加總，不是個人數字，請忽略。"
+                f"請列出每位業務員姓名與其台幣FYC合計，以純 JSON 格式回傳，例如：{{\"古銘森\": 23284, \"李采穎\": 56566}}"
+                f"姓名請從以下名單中選出最符合的：{member_list}。"
+                f"只輸出 JSON，不要其他文字。"
             ),
         })
 
         try:
             response = client.messages.create(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=20,
+                model="claude-sonnet-4-6",
+                max_tokens=300,
                 messages=[{"role": "user", "content": content}],
             )
             raw = response.content[0].text.strip()
-            match_name = re.search(r'[\u4e00-\u9fff]{2,4}', raw)
-            winner_name = match_name.group(0) if match_name else raw
+            import json
+            json_str = re.search(r'\{.*\}', raw, re.DOTALL)
+            if not json_str:
+                raise ValueError(f"無法解析回傳內容：{raw}")
+            fyc_map = json.loads(json_str.group(0))
+            winner_name = max(fyc_map, key=fyc_map.get)
+            print(f"[FYC結果] {fyc_map} → 業績王：{winner_name}", flush=True)
         except Exception as e:
             line_bot_api.reply_message(
                 event.reply_token,
