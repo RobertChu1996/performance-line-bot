@@ -99,10 +99,6 @@ def handle_text(event):
         ],
     )
 
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=f"✅ 已發送 {name} {title} 的業績王公告！"),
-    )
 
 
 if __name__ == "__main__":
