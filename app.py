@@ -49,10 +49,6 @@ def handle_image(event):
     content = line_bot_api.get_message_content(event.message.id)
     image_data = b"".join(chunk for chunk in content.iter_content())
     pending_reports.append(base64.b64encode(image_data).decode())
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=f"✅ 已收到第 {len(pending_reports)} 張報表，傳完後請發「結算」"),
-    )
 
 
 @handler.add(MessageEvent, message=TextMessage)
