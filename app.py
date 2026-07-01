@@ -77,19 +77,20 @@ def handle_text(event):
         content.append({
             "type": "text",
             "text": (
-                "這些是業績日報表，請找出所有業務員的姓名與台幣FYC金額，"
-                "回傳台幣FYC最高的業務員姓名（只回傳中文姓名，不要其他文字）。"
-                "如果有並列最高，只回傳其中一位即可。"
+                "這些是業績日報表。找出台幣FYC數字最高的業務員。"
+                "只輸出那個人的中文姓名，2到4個中文字，不要任何其他文字、標點、說明。"
             ),
         })
 
         try:
             response = client.messages.create(
                 model="claude-haiku-4-5-20251001",
-                max_tokens=50,
+                max_tokens=20,
                 messages=[{"role": "user", "content": content}],
             )
-            winner_name = response.content[0].text.strip()
+            raw = response.content[0].text.strip()
+            match_name = re.search(r'[\u4e00-\u9fff]{2,4}', raw)
+            winner_name = match_name.group(0) if match_name else raw
         except Exception as e:
             line_bot_api.reply_message(
                 event.reply_token,
