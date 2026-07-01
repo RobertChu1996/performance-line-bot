@@ -103,7 +103,7 @@ def handle_text(event):
         return
 
     # 手動指令：業績王 姓名 [YYYY.MM.DD]
-    match = re.match(r"業績王\s+(\S+)(?:\s+(\d{4}\.\d{2}\.\d{2}))?", text)
+    match = re.match(r"業績王\$\$\s+(\S+)(?:\s+(\d{4}\.\d{2}\.\d{2}))?", text)
     if not match:
         return
 
