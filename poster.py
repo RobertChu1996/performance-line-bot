@@ -12,8 +12,8 @@ DATE_POS        = (353, 95)    # date text center
 TITLE_HEAD_POS  = (353, 160)   # "本日業績王" center
 CIRCLE_CENTER   = (353, 415)   # headshot circle center
 CIRCLE_RADIUS   = 190          # headshot circle radius (px)
-NAME_POS        = (353, 715)   # winner name center
-TITLE_POS       = (353, 790)   # job title center
+NAME_POS        = (353, 725)   # winner name center
+TITLE_POS       = (353, 800)   # job title center
 
 DATE_COLOR  = "#FFD700"
 NAME_COLOR  = "#FFD700"
@@ -70,10 +70,16 @@ def generate_poster(name: str, title: str, date_str: str = None):
     if photo_path is None:
         return None
 
-    photo = Image.open(photo_path).convert("RGBA")
-    r = CIRCLE_RADIUS
-    photo = photo.resize((r * 2, r * 2), Image.LANCZOS)
+    raw = Image.open(photo_path).convert("RGBA")
+    # Crop to top 65% to focus on face/upper body
+    pw, ph = raw.size
+    crop_h = int(ph * 0.65)
+    crop_size = min(pw, crop_h)
+    left = (pw - crop_size) // 2
+    raw = raw.crop((left, 0, left + crop_size, crop_size))
 
+    r = CIRCLE_RADIUS
+    photo = raw.resize((r * 2, r * 2), Image.LANCZOS)
     mask = Image.new("L", (r * 2, r * 2), 0)
     ImageDraw.Draw(mask).ellipse((0, 0, r * 2, r * 2), fill=255)
     photo.putalpha(mask)
