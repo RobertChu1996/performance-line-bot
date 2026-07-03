@@ -22,9 +22,10 @@ handler_a       = WebhookHandler(os.environ["LINE_CHANNEL_SECRET_A"])
 configuration_a = Configuration(access_token=os.environ["LINE_CHANNEL_ACCESS_TOKEN_A"])
 
 # Bot B：業績王公告群組
-handler_b       = WebhookHandler(os.environ["LINE_CHANNEL_SECRET_B"])
-configuration_b = Configuration(access_token=os.environ["LINE_CHANNEL_ACCESS_TOKEN_B"])
-GROUP_ID_B      = os.environ.get("LINE_GROUP_ID_B", "")
+handler_b        = WebhookHandler(os.environ["LINE_CHANNEL_SECRET_B"])
+configuration_b  = Configuration(access_token=os.environ["LINE_CHANNEL_ACCESS_TOKEN_B"])
+configuration_b_push = Configuration(access_token=os.environ.get("LINE_CHANNEL_ACCESS_TOKEN_B_PUSH") or os.environ["LINE_CHANNEL_ACCESS_TOKEN_B"])
+GROUP_ID_B       = os.environ.get("LINE_GROUP_ID_B", "")
 
 BASE_URL = os.environ.get("BASE_URL", "").rstrip("/")
 
@@ -346,7 +347,7 @@ def _announce(event, name: str, date_str: str = None):
 
     src = event.source
     target = GROUP_ID_B or getattr(src, "group_id", None) or src.user_id
-    with ApiClient(configuration_b) as api:
+    with ApiClient(configuration_b_push) as api:
         MessagingApi(api).push_message(
             PushMessageRequest(
                 to=target,
