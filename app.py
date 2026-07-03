@@ -345,20 +345,16 @@ def _announce(event, name: str, date_str: str = None):
         f"Go!!Go!!Go🎉🎉🎉"
     )
 
-    src = event.source
-    target = GROUP_ID_B or getattr(src, "group_id", None) or src.user_id
-    print(f"[_announce] target={target!r} image_url={image_url!r}", flush=True)
-    with ApiClient(configuration_b_push) as api:
-        MessagingApi(api).push_message(
-            PushMessageRequest(
-                to=target,
+    with ApiClient(configuration_b) as api:
+        MessagingApi(api).reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
                 messages=[
                     TextMessage(text=announcement),
                     ImageMessage(original_content_url=image_url, preview_image_url=image_url),
                 ],
             )
         )
-    send_reply(configuration_b, event.reply_token, f"✅ 已發送 {name} {title} 的業績王公告！")
 
 
 if __name__ == "__main__":
