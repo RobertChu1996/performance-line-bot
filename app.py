@@ -354,6 +354,7 @@ def _announce(event, name: str, date_str: str = None):
                 to=target,
                 messages=[
                     TextMessage(text=announcement),
+                    ImageMessage(original_content_url=image_url, preview_image_url=image_url),
                 ],
             )
         )
