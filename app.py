@@ -286,10 +286,10 @@ def on_message_b(event):
                 messages=[{"role": "user", "content": content}],
             )
             raw = response.content[0].text.strip()
-            json_match = re.search(r'\{.*\}', raw, re.DOTALL)
-            if not json_match:
+            start = raw.find('{')
+            if start == -1:
                 raise ValueError(f"無法解析回傳內容：{raw}")
-            fyc_map = json.loads(json_match.group(0))
+            fyc_map, _ = json.JSONDecoder().raw_decode(raw[start:])
             winner_name = max(fyc_map, key=fyc_map.get)
             winner_name = WINNER_SUBSTITUTES.get(winner_name, winner_name)
             print(f"[FYC結果] {fyc_map} → 業績王：{winner_name}", flush=True)
