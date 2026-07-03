@@ -28,6 +28,11 @@ GROUP_ID_B      = os.environ.get("LINE_GROUP_ID_B", "")
 
 BASE_URL = os.environ.get("BASE_URL", "").rstrip("/")
 
+WINNER_SUBSTITUTES = {
+    "方駿威": "林倢伃",
+    "王馨婕": "邱耀欽",
+}
+
 # Bot A state: group_id -> 最新統計表文字
 state: dict[str, str] = {}
 
@@ -286,6 +291,7 @@ def on_message_b(event):
                 raise ValueError(f"無法解析回傳內容：{raw}")
             fyc_map = json.loads(json_match.group(0))
             winner_name = max(fyc_map, key=fyc_map.get)
+            winner_name = WINNER_SUBSTITUTES.get(winner_name, winner_name)
             print(f"[FYC結果] {fyc_map} → 業績王：{winner_name}", flush=True)
         except Exception as e:
             rep(f"❌ 讀取報表失敗：{e}")
@@ -296,7 +302,7 @@ def on_message_b(event):
         _announce(event, winner_name)
         return
 
-    m = re.match(r"業績王\$\$\s+(\S+)(?:\s+(\d{4}\.\d{2}\.\d{2}))?", text)
+    m = re.match(r"#業績王\s+(\S+)(?:\s+(\d{4}\.\d{2}\.\d{2}))?", text)
     if m:
         _announce(event, m.group(1), m.group(2))
 
