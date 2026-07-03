@@ -357,7 +357,6 @@ def _announce(event, name: str, date_str: str = None):
                 ],
             )
         )
-    send_reply(configuration_b, event.reply_token, f"✅ 已發送 {name} {title} 的業績王公告！")
 
 
 if __name__ == "__main__":
