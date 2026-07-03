@@ -337,6 +337,7 @@ def _announce(event, name: str, date_str: str = None):
 
     filename = os.path.basename(poster_path)
     image_url = f"{BASE_URL}/static/posters/{filename}"
+    print(f"[_announce] target={target!r} image_url={image_url!r}", flush=True)
     announcement = (
         f"恭喜{date_display}業績王\n"
         f"「{name} {title}」\n"
