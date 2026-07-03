@@ -299,7 +299,11 @@ def on_message_b(event):
         finally:
             pending_reports.clear()
 
-        _announce(event, winner_name)
+        try:
+            _announce(event, winner_name)
+        except Exception as e:
+            print(f"[_announce error] {e}", flush=True)
+            rep(f"❌ 發布業績王失敗：{e}")
         return
 
     m = re.match(r"#業績王\s+(\S+)(?:\s+(\d{4}\.\d{2}\.\d{2}))?", text)
