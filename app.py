@@ -291,7 +291,10 @@ def on_message_b(event):
                 raise ValueError(f"無法解析回傳內容：{raw}")
             fyc_map, _ = json.JSONDecoder().raw_decode(raw[start:])
             winner_name = max(fyc_map, key=fyc_map.get)
-            winner_name = WINNER_SUBSTITUTES.get(winner_name, winner_name)
+            for key, val in WINNER_SUBSTITUTES.items():
+                if winner_name.startswith(key):
+                    winner_name = val
+                    break
             print(f"[FYC結果] {fyc_map} → 業績王：{winner_name}", flush=True)
         except Exception as e:
             rep(f"❌ 讀取報表失敗：{e}")
