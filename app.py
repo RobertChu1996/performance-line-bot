@@ -168,7 +168,7 @@ def on_message_a(event):
         rep("✅ 統計表已記錄，Bot 待命中")
         return
 
-    m = re.match(r"^(.+?)\s*收\s*.+?([\d.]+)\s*[Cc].*體檢件", text)
+    m = re.match(r"^(.+?)\s*收\s*.*?([\d.]+)\s*[Cc].*體檢件", text)
     if m:
         name, amount = m.group(1).strip(), float(m.group(2))
         if gid not in state: rep("⚠️ 尚未初始化，請先貼統計表"); return
@@ -176,7 +176,7 @@ def on_message_a(event):
         if err: rep(f"⚠️ {err}"); return
         state[gid] = new_text; rep(new_text); return
 
-    m = re.match(r"^(.+?)\s*收\s*.+?([\d.]+)\s*[Cc]\s*$", text)
+    m = re.match(r"^(.+?)\s*收\s*.*?([\d.]+)\s*[Cc]\s*$", text)
     if m:
         name, amount = m.group(1).strip(), float(m.group(2))
         if gid not in state: rep("⚠️ 尚未初始化，請先貼統計表"); return
