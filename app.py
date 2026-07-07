@@ -303,11 +303,7 @@ def on_message_b(event):
         finally:
             pending_reports.clear()
 
-        try:
-            _announce(event, winner_name)
-        except Exception as e:
-            print(f"[_announce error] {e}", flush=True)
-            rep(f"❌ 發布業績王失敗：{e}")
+        rep(f"✅ 業績王：{winner_name}\n請在群組輸入：#業績王 {winner_name}")
         return
 
     m = re.match(r"#業績王\s+(\S+)(?:\s+(\d{4}\.\d{2}\.\d{2}))?", text)
@@ -345,19 +341,16 @@ def _announce(event, name: str, date_str: str = None):
         f"Go!!Go!!Go🎉🎉🎉"
     )
 
-    src = event.source
-    target = GROUP_ID_B or getattr(src, "group_id", None) or src.user_id
-    with ApiClient(configuration_b_push) as api:
-        MessagingApi(api).push_message(
-            PushMessageRequest(
-                to=target,
+    with ApiClient(configuration_b) as api:
+        MessagingApi(api).reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
                 messages=[
                     TextMessage(text=announcement),
                     ImageMessage(original_content_url=image_url, preview_image_url=image_url),
                 ],
             )
         )
-    send_reply(configuration_b, event.reply_token, f"✅ 已發送 {name} {title} 的業績王公告！")
 
 
 if __name__ == "__main__":
